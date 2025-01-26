@@ -25,6 +25,8 @@ pub mod vault {
         ctx.accounts.withdraw(amount)?;
         Ok(())
     }
+
+    // TODO: Call the close instruction here
 }
 
 #[account]
@@ -60,16 +62,20 @@ impl<'info> Initialize<'info> {
     pub fn initialize(&mut self, bumps: InitializeBumps) -> Result<()> {
         self.vault_state.vault_bump = bumps.vault;
         self.vault_state.state_bump = bumps.vault_state;
+        msg!("Vault State PDA: {}", self.vault_state.key());
+        msg!("Signer: {}", self.signer.key());
+        msg!("Vault Bump: {}", self.vault_state.vault_bump);
         Ok(())
     }
 }
 
 // Alternative solution only
+/* 
 pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     ctx.accounts.vault_state.vault_bump = ctx.bumps.vault;
     ctx.accounts.vault_state.state_bump = ctx.bumps.vault_state;
     Ok(())
-}
+}*/
 
 #[derive(Accounts)]
 pub struct Deposit<'info> {
@@ -84,6 +90,7 @@ pub struct Deposit<'info> {
     pub vault_state: Account<'info, VaultState>,
     
     #[account(
+        mut,
         seeds = [vault_state.key().as_ref()],
         bump = vault_state.vault_bump
     )]
@@ -121,6 +128,7 @@ pub struct Withdraw<'info> {
     pub vault_state: Account<'info, VaultState>,
     
     #[account(
+        mut,
         seeds = [vault_state.key().as_ref()],
         bump = vault_state.vault_bump
     )]
@@ -130,6 +138,9 @@ pub struct Withdraw<'info> {
 
 impl<'info> Withdraw<'info> {
     pub fn withdraw(&mut self, amount: u64) -> Result<()> {
+        msg!("Vault State PDA: {}", self.vault_state.key());
+        msg!("Signer: {}", self.signer.key());
+        msg!("Vault Bump: {}", self.vault_state.vault_bump);
         let system_program = self.system_program.to_account_info();
         
         let accounts = Transfer {
@@ -153,6 +164,7 @@ impl<'info> Withdraw<'info> {
     }
 }
 
+/*
 
 // Finish the close() instruction as homework
 #[derive(Accounts)]
@@ -198,3 +210,4 @@ impl<'info> Close<'info> {
         Ok(())
     }
 }
+*/
