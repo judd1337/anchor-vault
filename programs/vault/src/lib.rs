@@ -26,7 +26,10 @@ pub mod vault {
         Ok(())
     }
 
-    // TODO: Call the close instruction here
+    pub fn close(ctx: Context<Close>) -> Result<()> {
+        ctx.accounts.close()?;
+        Ok(())
+    }
 }
 
 #[account]
@@ -123,14 +126,14 @@ pub struct Withdraw<'info> {
     #[account(
         mut,
         seeds = [b"state", signer.key().as_ref()],
-        bump = vault_state.vault_bump,
+        bump = vault_state.state_bump,
     )]
     pub vault_state: Account<'info, VaultState>,
     
     #[account(
         mut,
         seeds = [vault_state.key().as_ref()],
-        bump = vault_state.vault_bump
+        bump = vault_state.vault_bump,
     )]
     pub vault: SystemAccount<'info>,
     pub system_program: Program<'info, System>,
@@ -164,7 +167,6 @@ impl<'info> Withdraw<'info> {
     }
 }
 
-/*
 
 // Finish the close() instruction as homework
 #[derive(Accounts)]
@@ -173,12 +175,14 @@ pub struct Close<'info> {
     pub signer: Signer<'info>,
     #[account(
         mut,
+        close = signer, // Send lamports to the signer when closing
         seeds = [b"state", signer.key().as_ref()],
-        bump = vault_state.vault_bump,
+        bump = vault_state.state_bump
     )]
     pub vault_state: Account<'info, VaultState>,
     
     #[account(
+        mut,
         seeds = [vault_state.key().as_ref()],
         bump = vault_state.vault_bump
     )]
@@ -205,9 +209,7 @@ impl<'info> Close<'info> {
         let cpi_ctx = CpiContext::new_with_signer(system_program, accounts, signer_seeds);
         //let cpi_ctx = CpiContext::new(system_program, accounts);
 
-        //assert!(amount <= self.vault.lamports());
-        transfer(cpi_ctx, amount)?; // transfer(cpi_ctx, self.vault.lamports())?
+        transfer(cpi_ctx, self.vault.lamports())?; 
         Ok(())
     }
 }
-*/

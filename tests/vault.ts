@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Vault } from "../target/types/vault";
 import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { BN } from "bn.js";
 import { 
   MINT_SIZE,
@@ -68,7 +68,6 @@ describe("vault", () => {
 
     let depositAmount = new BN(0.2 * LAMPORTS_PER_SOL);
 
-    // Add your test here.
     const tx = await program.methods
       .deposit(depositAmount)
       .accountsPartial({
@@ -94,7 +93,6 @@ describe("vault", () => {
   it("vault - withdraw from the vault!", async () => {
     let withdrawAmount = new BN(0.2 * LAMPORTS_PER_SOL);
 
-    // Add your test here.
     const tx = await program.methods
       .withdraw(withdrawAmount)
       .accountsPartial({
@@ -117,7 +115,29 @@ describe("vault", () => {
     }
   });
 
+  it("vault - close the vault!", async () => {
 
+    const initialVaultStateInfo = await connection.getAccountInfo(vault_state_pda);
+    console.log(`Initial Vault State Lamports: ${initialVaultStateInfo?.lamports}`);
+
+    // Add your test here.
+    const tx = await program.methods
+      .close()
+      .accountsPartial({
+        signer: signer.publicKey,
+        vaultState: vault_state_pda,
+        vault: vault_account
+      })
+      .signers([signer])
+      .rpc();
+
+      // Try fetching the account info after closure
+      const closedVaultStateInfo = await connection.getAccountInfo(vault_state_pda);
+      console.log("Vault State After Closure:", closedVaultStateInfo); // Should be null
+      expect(closedVaultStateInfo).to.be.null;
+  });
+
+  
 });
 
 async function airdrop(connection: any, address: any, amount = LAMPORTS_PER_SOL) {
